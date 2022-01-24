@@ -8,11 +8,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using tusdotnet.Interfaces;
+using tusdotnet.Models;
 
 namespace ObjectServer.API.Services
 {
-    public class LakeFsService : IDataLakeService
+    public class LakeFsService : IDataLakeService, ITusFileIdProvider
     {
         public string Token { get; set; }
         public string ClientId { get; set; }
@@ -59,7 +62,6 @@ namespace ObjectServer.API.Services
                         }
 
                         formData.Add(new StreamContent(new MemoryStream(bytesData)), "content", fileName);
-                        var path = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}".Replace("-", "");
 
                         var authenticationString = $"{ClientId}:{SecretKey}";
                         var base64EncodedAuthenticationString = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(authenticationString));
@@ -67,7 +69,7 @@ namespace ObjectServer.API.Services
                         client.DefaultRequestHeaders.Authorization
                                       = new AuthenticationHeaderValue("BASIC", base64EncodedAuthenticationString);
                         var lakefsResponse = await client
-                            .PostAsync($"{Server}/repositories/{Repository}/branches/{Branch}/objects?path={path}", formData);
+                            .PostAsync($"{Server}/repositories/{Repository}/branches/{Branch}/objects?path={fileName}", formData);
 
                         //if (response.StatusCode != HttpStatusCode.Created)
                         //    return StatusCode(response.StatusCode);
@@ -76,14 +78,28 @@ namespace ObjectServer.API.Services
                             var message = await lakefsResponse.RequestMessage.Content.ReadAsStringAsync();
                             return response.Bad(message, lakefsResponse.StatusCode);
                         }
-                        return response.Good(path);
+                        return response.Good(fileName);
                     }
                 }
             }
             catch (Exception e)
             {
-                return response.Bad(e.Message,HttpStatusCode.InternalServerError);
+                return response.Bad(e.Message, HttpStatusCode.InternalServerError);
             }
+        }
+
+        public Task<string> CreateId(string metadata)
+        {
+
+            var metadataBytes = System.Convert.FromBase64String(metadata.Split(",")[0]);
+            var fileExtession = Encoding.UTF8.GetString(metadataBytes).Split(".")[1];
+            var id = $"{ Guid.NewGuid().ToString().Replace("-", "")}.{fileExtession}";
+            return Task.FromResult(id);
+        }
+
+        public Task<bool> ValidateId(string fileId)
+        {
+            return Task.FromResult(true);
         }
     }
 }

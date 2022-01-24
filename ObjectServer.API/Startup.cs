@@ -16,6 +16,8 @@ using System.Text;
 using System.IO;
 using ObjectServer.API.ServiceInterfaces;
 using ObjectServer.API.Services;
+using System;
+using tusdotnet.Models.Expiration;
 
 namespace ObjectServer.API
 {
@@ -25,10 +27,13 @@ namespace ObjectServer.API
         {
             Configuration = configuration;
             DataLakeService = new LakeFsService(configuration);
+            TusFileIdProvider = new LakeFsService(configuration);
+
         }
 
         public IConfiguration Configuration { get; }
         public IDataLakeService DataLakeService { get; }
+        public ITusFileIdProvider TusFileIdProvider { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -69,39 +74,26 @@ namespace ObjectServer.API
             var tusFiles = Path.Combine(env.ContentRootPath, "tusfiles");
             if (!Directory.Exists(tusFiles))
                 Directory.CreateDirectory(tusFiles);
+
+            var tusBuffer = new TusDiskBufferSize(4096);
             app.UseTus(httpContext => new DefaultTusConfiguration
             {
-
-                MaxAllowedUploadSizeInBytesLong = 1000000000,
-                Store = new TusDiskStore(tusFiles),
-                UrlPath = "/objectServer/Upload",
-                MaxAllowedUploadSizeInBytes = 100_000_000,
+                Expiration = new AbsoluteExpiration(TimeSpan.FromMinutes(20)),
+                Store = new TusDiskStore(tusFiles, true, tusBuffer, TusFileIdProvider),
+                UrlPath = "/objectServer/file",
+                MaxAllowedUploadSizeInBytes = int.MaxValue,
                 Events = new Events
                 {
-                    OnCreateCompleteAsync = async ctx =>
-                    {
-                      await Aqui(ctx);
-                    },
                     //Upload completion event callback
                     OnFileCompleteAsync = async ctx =>
                     {
                         //Get upload file
                         var file = await ctx.GetFileAsync();
-
-                        //Get upload file
-                        var metadatas = await file.GetMetadataAsync(ctx.CancellationToken);
-
-                        //Get the target file name in the above file metadata
-                        var fileNameMetadata = metadatas["filename"];
-
-                        //The target file name is encoded in Base64, so it needs to be decoded here
-                        var fileName = fileNameMetadata.GetString(Encoding.UTF8);
-
-                        var extensionName = Path.GetExtension(fileName);
-                        //Upload to LakeFs
+                        //var extensionName = Path.GetExtension(fileName);
+                        ////Upload to LakeFs
 
                         var stream = await file.GetContentAsync(ctx.CancellationToken);
-                        var result = await DataLakeService.UploadAsync(stream, fileName);
+                        var result = await DataLakeService.UploadAsync(stream, file.Id);
                         //temp
                         if (!result.Success)
                         {
@@ -109,8 +101,6 @@ namespace ObjectServer.API
                             await ctx.HttpContext.Response.BodyWriter.WriteAsync(Encoding.UTF8.GetBytes(result.Message));
                             return;
                         }
-                        ctx.HttpContext.Response.StatusCode = (int)result.StatusCode;
-                        await ctx.HttpContext.Response.BodyWriter.WriteAsync(Encoding.UTF8.GetBytes(result.Path));
                     }
                 },
             });
@@ -120,11 +110,6 @@ namespace ObjectServer.API
             {
                 endpoints.MapRazorPages();
             });
-        }
-        public async Task Aqui(CreateCompleteContext ctx) {
-
-            var teste = ctx;
-        
         }
     }
 }
