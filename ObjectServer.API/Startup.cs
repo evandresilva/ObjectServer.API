@@ -48,6 +48,23 @@ namespace ObjectServer.API
         {
             app.Use((context, next) =>
             {
+
+                // Specify timeout, in this case 3 minutes.
+                var requestTimeout = TimeSpan.FromMinutes(3);
+
+                // Add timeout to the current request cancellation token. 
+                // If the client does a clean disconnect the cancellation token will also be flagged as cancelled.
+                using var timoutCts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+
+                // Make sure to cancel the cancellation token after the timeout. 
+                // Once this timeout has been reached, tusdotnet will cancel all pending reads 
+                // from the client and save the parts of the file has been received so far.
+                timoutCts.CancelAfter(requestTimeout);
+
+                // Replace the request cancellation token with our token that supports timeouts.
+                context.RequestAborted = timoutCts.Token;
+
+                
                 // Default limit was changed some time ago. Should work by setting MaxRequestBodySize to null using ConfigureKestrel but this does not seem to work for IISExpress.
                 // Source: https://github.com/aspnet/Announcements/issues/267
                 context.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = int.MaxValue;
@@ -71,6 +88,7 @@ namespace ObjectServer.API
                    .AllowAnyMethod()
                    .AllowAnyOrigin()
                    .WithExposedHeaders(CorsHelper.GetExposedHeaders()));
+             //set the local path for chunck store
             var tusFiles = Path.Combine(env.ContentRootPath, "tusfiles");
             if (!Directory.Exists(tusFiles))
                 Directory.CreateDirectory(tusFiles);
