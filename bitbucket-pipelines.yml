@@ -2,14 +2,9 @@
    default:
      - step:
         script:
-            - script:# Modify the commands below to build your repository.
-            #Set $DOCKER_HUB_USERNAME and $DOCKER HUB PASSWORD as environment variables in repository settings
             - export IMAGE_NAME=gabinetedigital/gdos:SBITBUCKET_COMMIT
-            #build the Docker image (this will use the Dockerfile in the root of the repo)
-            - docker build -t SIMAGE_NAME.
-            # authenticate with the Docker Hub registry
+            - docker build -t SIMAGE_NAME -f ObjectServer.API .
             - docker login --username $DOCKER_USER --password SDOCKER_PASS
-            # push the new Docker image to the Docker registry
             - docker push SIMAGE_NAME
 options:
     docker: true
