@@ -1,8 +1,10 @@
 ﻿pipelines:
-   default:
+  branches:
+    master:
      - step:
         script:
-            - export IMAGE_NAME=gabinetedigital/gdos:$BITBUCKET_COMMIT
+            - export $BITBUCKET_COMMIT_SHORT=$(echo $BITBUCKET_COMMIT| cut -c1-7)
+            - export IMAGE_NAME=gabinetedigital/gdos:$BITBUCKET_COMMIT_SHORT
             - docker build -t $IMAGE_NAME -f ObjectServer.API/Dockerfile .
             - docker login --username $DOCKER_USER --password $DOCKER_PASS
             - docker push $IMAGE_NAME
