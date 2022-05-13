@@ -2,9 +2,9 @@
    default:
      - step:
         script:
-            - export IMAGE_NAME=gabinetedigital/gdos:$SBITBUCKET_COMMIT
-            - docker build -t SIMAGE_NAME -f ObjectServer.API .
-            - docker login --username $DOCKER_USER --password SDOCKER_PASS
-            - docker push SIMAGE_NAME
+            - export IMAGE_NAME=gabinetedigital/gdos:$BITBUCKET_COMMIT
+            - docker build -t $IMAGE_NAME -f ObjectServer.API/Dockerfile .
+            - docker login --username $DOCKER_USER --password $DOCKER_PASS
+            - docker push $IMAGE_NAME
 options:
     docker: true
