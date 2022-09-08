@@ -8,5 +8,21 @@
             - docker build -t $IMAGE_NAME -f ObjectServer.API/Dockerfile .
             - docker login --username $DOCKER_USER --password $DOCKER_PASS
             - docker push $IMAGE_NAME
+           
+        name: deploy
+         image: yoep/openconnect
+         script:
+           # connect to vpn
+           - vpn-open -u ${VPN_USER} -p ${VPN_PASSWORD} -s ${SERVER} -P ${SERVER_PORT} ${VPN_HOST}
+           # execute request over VPN
+           - curl http://192.168.0.29:3000/home
+           # close vpn
+           - vpn-close
+           - pipe: atlassian/ssh-run:0.4.0
+              variables:
+                 SSH_USER: 'administrator'
+                 SERVER: '41.63.166.54'
+                 COMMAND: 'export GDOS_VERSION='"'${BITBUCKET_COMMIT_SHORT}'"'; docker-compose up -d gdobjectserver' 
+
 options:
     docker: true

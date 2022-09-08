@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectServer.API", "ObjectServer.API\ObjectServer.API.csproj", "{A6886464-0B52-4EBE-B712-3E1E89E9FCFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectServer.API", "ObjectServer.API\ObjectServer.API.csproj", "{A6886464-0B52-4EBE-B712-3E1E89E9FCFA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectServer.API.Tests", "ObjectServer.API.Tests\ObjectServer.API.Tests.csproj", "{EBC65863-5EB8-471F-B2B8-65873FF58726}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A6886464-0B52-4EBE-B712-3E1E89E9FCFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6886464-0B52-4EBE-B712-3E1E89E9FCFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6886464-0B52-4EBE-B712-3E1E89E9FCFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBC65863-5EB8-471F-B2B8-65873FF58726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBC65863-5EB8-471F-B2B8-65873FF58726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBC65863-5EB8-471F-B2B8-65873FF58726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBC65863-5EB8-471F-B2B8-65873FF58726}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
